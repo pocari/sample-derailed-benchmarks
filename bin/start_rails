@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkdir -p tmp/pids
+exec bundle exec pumactl -F /usr/src/app/config/puma.rb start

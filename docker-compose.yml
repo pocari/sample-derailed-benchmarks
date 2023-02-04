@@ -1,0 +1,49 @@
+version: '3.7'
+
+x-base_rails: &base_rails
+  build:
+    context: .
+    dockerfile: ./containers/local/rails/Dockerfile
+  init: true
+  volumes:
+    - .:/usr/src/app
+    - node-modules-volume:/usr/src/app/node_modules
+    - bundle-volume:/usr/local/bundle
+  tmpfs:
+    - /usr/src/app/tmp/pids
+    # docker for mac 3.3系における
+    # https://github.com/docker/for-mac/issues/5570
+    # の問題の、回避策
+    # https://github.com/rails/rails/issues/42100#issuecomment-856138195
+    - /tmp
+
+services:
+  rails:
+    <<: *base_rails
+    stdin_open: true
+    privileged: true
+    tty: true
+    environment:
+      RAILS_LOG_TO_STDOUT: "true"
+      LOCAL_DOCKER_COMPOSE_MODE: 1
+      MANUAL: ${MANUAL:-0}
+      SECRET_KEY_BASE: 0d8c59c9e7142b9d86ece88f5f9293e3b6aeebf1fa6b2c9265abf660f6412603e0947a0a6541f7ae2275f2e4bb09b85cfbf5e85d4a9bc3dee7bef231be9eabc3
+      WEBPACKER_DEV_SERVER_HOST: webpacker
+      WEBPACKER_DEV_SERVER_PUBLIC: webpacker:23035
+    command:
+      - ./bin/dc_wrapper.sh
+    ports:
+      - "23000:3000"
+  webpacker:
+    <<: *base_rails
+    environment:
+      LOCAL_DOCKER_COMPOSE_MODE: 1
+      MANUAL: ${MANUAL:-0}
+      WEBPACKER_DEV_SERVER_HOST: 0.0.0.0
+      WEBPACKER_DEV_SERVER_PUBLIC: 0.0.0.0:23035
+    command: /usr/src/app/bin/webpacker-dev-server
+    ports:
+      - "23035:23035"
+volumes:
+  bundle-volume:
+  node-modules-volume:

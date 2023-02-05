@@ -1,8 +1,10 @@
+$hoge = []
 class TodosController < ApplicationController
   before_action :set_todo, only: %i[ show edit update destroy ]
 
   # GET /todos or /todos.json
   def index
+    $hoge += 100000.times.map {|i| i }
     @todos = Todo.all
   end
 
